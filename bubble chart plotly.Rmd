@@ -1,0 +1,27 @@
+---
+title: "Bubble Chart in Plotly"
+author: "Hanna Rodrigues Ferreira"
+date: "03/08/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, warning=FALSE, message = FALSE}
+
+#library(ggplot2)
+library(plotly)
+library(dplyr)
+library(Hmisc) # %nin% 
+
+```  
+
+
+```{r}
+
+data <- read.csv("owid-covid-data.csv")
+glimpse(data)
+
+``` 
