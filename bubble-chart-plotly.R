@@ -4,25 +4,27 @@
 library(plotly)
 library(dplyr)
 library(Hmisc) # %nin% 
+library(lubridate)
 
 # ------------------------ clean data --------------
 
 data <- read.csv("owid-covid-data.csv")
 
-data <- data %>% 
-  group_by(location) %>%
-  summarise(continent = max(continent),
-            pop = max(population,na.rm = TRUE),
-            cases = max(total_cases,na.rm = TRUE),
-            deaths = max(total_deaths,na.rm = TRUE),
-            vac1 = max(people_vaccinated - people_fully_vaccinated,
-                       na.rm = TRUE), 
-            vac2 = max(people_fully_vaccinated,na.rm = TRUE))
+data <- data %>% mutate(cases = ifelse(!(total_cases>=0), 0, total_cases),
+                        deaths = ifelse(!(total_deaths>=0), 0, total_deaths),
+                        vac1 = ifelse(!(people_vaccinated>=0 ), 0, people_vaccinated), 
+                        vac2 = ifelse(!(people_fully_vaccinated>=0), 0, people_fully_vaccinated),
+                        pop = population)
 
-data <- data %>% mutate(cases = ifelse(!(cases>=0), 0, cases),
-                        deaths = ifelse(!(deaths>=0), 0, deaths),
-                        vac1 = ifelse(!(vac1>=0 ), 0, vac1), 
-                        vac2 = ifelse(!(vac2>=0), 0, vac2))
+
+data <- data %>% select(continent,
+                        location,
+                        date,
+                        cases,
+                        deaths,
+                        vac1,
+                        vac2,
+                        pop)
 
 
 data <- data %>% filter(location %nin% c("World",
@@ -32,6 +34,11 @@ data <- data %>% filter(location %nin% c("World",
                                          "European Union",
                                          "South America",
                                          "Africa"))
+
+# date => months
+
+#data <- filter(date ...)
+
 
 #------------------------- external data ------------------------------
 
@@ -77,18 +84,23 @@ colors <- c('#F28B30', # Asia (laranja)
 
 #------------------------- plotting -------------------------------------
 
-fig <- plot_ly(data, x = ~ (cases/pop) * 100,
-               y = ~ (deaths/pop) * 100,
-               text = ~location,
-               type = 'scatter',
-               mode = 'markers',
-               marker = list(size = ~ (vac2/pop) * 100,
-                             opacity = 0.5, 
-                             color = 'blue'))
-
-fig <- fig %>% layout(title = "COVID-19 vaccinations of top 15 GPD countries",
-                      xaxis = list(showgrid = FALSE,rangemode: 'tozero'),
-                      yaxis = list(showgrid = FALSE,rangemode: 'tozero'))
+fig <- data %>%
+  plot_ly(
+    x = ~cases/pop, 
+    y = ~deaths/pop, 
+    size = ~vac2/pop, 
+    color = ~continent, 
+    frame = ~date, 
+    text = ~location, 
+    hoverinfo = "text",
+    type = 'scatter',
+    mode = 'markers'
+  )
+fig <- fig %>% layout(
+  xaxis = list(
+    type = "log"
+  )
+)
 
 fig
 
