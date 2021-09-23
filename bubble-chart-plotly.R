@@ -49,60 +49,17 @@ colors <- c('#F28B30', # Asia (laranja)
             'gray',    # Outros (cinza)
             '#03A62C') # Am?rica do sul (verde)
 
-# ------------------------ clean data --------------
-
-data <- read.csv("Animated-Visualizations-of-COVID-Data/owid-covid-data.csv")
-
-data <- data %>% mutate(cases = replace_na(ifelse(!(total_cases_per_million>=0),
-                                                  0, total_cases_per_million), 0),
-                        deaths = replace_na(ifelse(!(total_deaths_per_million>=0),
-                                                   0, total_deaths_per_million), 0),
-                        vac1 = replace_na(ifelse(!(people_vaccinated_per_hundred>=0 ),
-                                                 0, people_vaccinated_per_hundred), 0), 
-                        vac2 = replace_na(ifelse(!(people_fully_vaccinated_per_hundred>=0),
-                                                 0, people_fully_vaccinated_per_hundred), 0))
-
-
-data <- data %>% select(continent,
-                        location,
-                        date,
-                        cases,
-                        deaths,
-                        vac1,
-                        vac2)
-
-
-data <- data %>% filter(location %nin% c("World",
-                                         "Asia",
-                                         "Europe",
-                                         "North America",
-                                         "European Union",
-                                         "South America",
-                                         "Africa"))
-
-data <- data %>% mutate(continent = ifelse(location %in% names,
-                                           continent,
-                                           "others"))
-
-data <- data[day(ymd(data$date)) %in% c(01,15), ]
-
-
 #------------------------- plotting -------------------------------------
-
 fig <- data %>%
   plot_ly(
     x = ~cases, 
     y = ~deaths, 
-    #size = '~vac2/pop', #`line.width` does not currently support multiple values.
+    marker = list(size = ~vac2,opacity = 0.5),
     #color = ~continent,
     #colors = colors, 
     frame = ~date, 
-    
-    # Hover text:
-    text = ~paste("Continent: ", continent, '$<br>Country:', location),
-    
+    text = ~paste("Continent: ", continent, '<br>Country:', location),
     type = 'scatter',
     mode = 'markers'
   )
-
 fig
