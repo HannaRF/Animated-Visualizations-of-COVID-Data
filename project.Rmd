@@ -82,8 +82,8 @@ data <- data %>%
 ```{r date}
 
 data <- data %>%
-        mutate(date_aux = as_date(date)) %>%
-        filter(day(date_aux) %in% c('1','15'))
+        mutate(date_aux = as_date(date) )%>%
+        filter(year(date_aux)==2021)
 
 data <- data %>% select(-pop,-date_aux)
 
@@ -167,14 +167,12 @@ colors <- c('#F28B30', # Asia (laranja)
 
 ```{r plot}
 
-p <- data %>%
+p <- data %>% 
   ggplot(aes(x=cases,
              y=deaths,
-             color=continent)) +
-  geom_point(aes(frame=date,
-                 size=vac2),
-             alpha=0.6) +
-  scale_size(range = c(.1, 35), name="fully vaccinated") +
+             size=vac2)) +
+  geom_point(aes(color=continent),alpha=0.6) +
+  scale_size(range = c(.1, 24), name="fully vaccinated") +
   scale_colour_manual(values = colors) +
   xlim(-1, 20) +
   ylim(-0.07, .61) +
@@ -182,6 +180,12 @@ p <- data %>%
   theme(legend.position = c(0.83, 0.86)) +
   guides(size = 'none') +
   labs(title="COVID-19 vaccinations of top 15 GPD countries")
+
+ggplotly(p)
+
+```
+
+```{r}
 
 p
 
