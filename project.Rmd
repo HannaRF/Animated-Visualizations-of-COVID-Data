@@ -64,28 +64,29 @@ summary(data)
 ```{r fill}
 
 data <- data %>%
-    group_by(location) %>% 
+  mutate(date_aux = as.Date(date)) %>%
+  filter(date_aux>"2020-01-01") %>%
+  group_by(location, month(date_aux)) %>%
+  filter(date_aux == max(date_aux))
+
+data <- data %>%
+    group_by(location) %>%
     fill(cases,
          deaths,
          vac1,
          vac2, .direction = c("down"))
 
-data <- data %>% 
+data <- data %>%
         group_by(location) %>%
         mutate(cases = 100*replace_na(cases,0)/pop,
                deaths = 100*replace_na(deaths,0)/pop,
                vac1 = 100*replace_na(vac1,0)/pop,
                vac2 = 100*replace_na(vac2,0)/pop)
 
-```
+data<- data %>% mutate(date_num = as.numeric(date_aux)-18565 )
 
-```{r date}
 
-data <- data %>%
-        mutate(date_aux = as_date(date) )%>%
-        filter(year(date_aux)==2021)
-
-data <- data %>% select(-pop,-date_aux)
+data <- data %>% select(-pop)
 
 ```
 
@@ -103,7 +104,7 @@ glimpse(data)
 
 ```{r}
 
-data %>% filter_all(any_vars(is.na(.)))
+#data %>% filter_all(any_vars(is.na(.)))
 
 ```
 
@@ -167,11 +168,13 @@ colors <- c('#F28B30', # Asia (laranja)
 
 ```{r plot}
 
-p <- data %>% 
+p <- data %>%
   ggplot(aes(x=cases,
              y=deaths,
              size=vac2)) +
-  geom_point(aes(color=continent),alpha=0.6) +
+  geom_point(aes(color=continent,
+                 frame=date_num,
+                 ids=location),alpha=0.6) +
   scale_size(range = c(.1, 24), name="fully vaccinated") +
   scale_colour_manual(values = colors) +
   xlim(-1, 20) +
@@ -180,6 +183,24 @@ p <- data %>%
   theme(legend.position = c(0.83, 0.86)) +
   guides(size = 'none') +
   labs(title="COVID-19 vaccinations of top 15 GPD countries")
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+
+```
+
+
+[ref animation plotly][https://plotly-r.com/animating-views.html]
+
+```{r}
 
 ggplotly(p)
 
