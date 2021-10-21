@@ -83,7 +83,7 @@ data <- data %>%
                vac1 = 100*replace_na(vac1,0)/pop,
                vac2 = 100*replace_na(vac2,0)/pop)
 
-data<- data %>% mutate(date_num = as.numeric(date_aux)-18565 )
+data<- data %>% mutate(date_num = as.numeric(date_aux))
 
 
 data <- data %>% select(-pop)
@@ -104,7 +104,13 @@ glimpse(data)
 
 ```{r}
 
-#data %>% filter_all(any_vars(is.na(.)))
+#data[count(data$location)!=12]
+
+```
+
+```{r}
+
+data <- data %>% filter(continent == "Asia")
 
 ```
 
@@ -175,12 +181,11 @@ p <- data %>%
   geom_point(aes(color=continent,
                  frame=date_num,
                  ids=location),alpha=0.6) +
+  scale_x_continuous(limits = c(-1.5, 20)) +
+  scale_y_continuous(limits = c(-0.09, .65)) +
   scale_size(range = c(.1, 24), name="fully vaccinated") +
   scale_colour_manual(values = colors) +
-  xlim(-1, 20) +
-  ylim(-0.07, .61) +
   theme_classic() +
-  theme(legend.position = c(0.83, 0.86)) +
   guides(size = 'none') +
   labs(title="COVID-19 vaccinations of top 15 GPD countries")
 
