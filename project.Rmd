@@ -119,21 +119,6 @@ glimpse(data)
 ```
 
 
-```{r}
-
-
-
-```
-
-```{r}
-
-
-
-```
-
-```{r}
-
-```
 
 ```{r external data}
 
@@ -175,7 +160,7 @@ data <- mutate(data, Continent=ifelse(location %in% names,
 
 ```{r plot}
 
-p <- data %>%
+p_animation <- data %>%
   ggplot(aes(x=cases,
              y=deaths,
              size=vac2)) +
@@ -195,13 +180,13 @@ p <- data %>%
 
 ```{r}
 
-p
+p_animation
 
 ```
 
 ```{r}
 
-ggplotly(p,tooltip = "text") %>% animation_opts(700,
+ggplotly(p_animation,tooltip = "text") %>% animation_opts(700,
                                redraw = FALSE,
                                mode = 'afterall') %>%
   animation_button(x = 1, xanchor = "right",
@@ -213,47 +198,45 @@ ggplotly(p,tooltip = "text") %>% animation_opts(700,
 
 ```{r}
 
-fig <- plot_ly(data,
-               x = ~cases,
-               y = ~deaths,
-               color = ~Continent,
-               size = ~vac2,
-               colors = colors,
-        type = 'scatter',
-        mode = 'markers',
-        sizes = c(0.1, 24),
-        marker = list(symbol = 'circle', sizemode = 'diameter',
-                      line = list(width = 2, color = '#FFFFFF')),
-        text = ~paste('Country:', location,
-                      '<br>Continent:', continent,
-                      '<br>Fully Vaccinated:', vac2))
 
-fig
 
 ```
 
 ```{r}
 
-# fig <- df %>%
-#   plot_ly(
-#     x = ~gdpPercap, 
-#     y = ~lifeExp, 
-#     size = ~pop, 
-#     color = ~continent, 
-#     frame = ~year, 
-#     text = ~country, 
-#     hoverinfo = "text",
-#     type = 'scatter',
-#     mode = 'markers'
-#   )
-# fig <- fig %>% layout(
-#     xaxis = list(
-#       type = "log"
-#     )
-#   )
-# 
-# fig
-  
+data <- data %>%
+  group_by(location) %>% 
+  filter(date_aux == max(date_aux))
+
+p_static <- data %>%
+  ggplot(aes(x=cases,
+             y=deaths,
+             size=vac2)) +
+  geom_point(aes(color=as_factor(Continent),
+                 ids=location),alpha=0.6) +
+  scale_x_continuous(limits = c(-1.5, 20)) +
+  scale_y_continuous(limits = c(-0.09, .65)) +
+  scale_size(range = c(.1, 25), name="fully vaccinated") +
+  scale_colour_manual(values = colors) +
+  theme_classic() +
+  labs(title="COVID-19 vaccinations of top 15 GPD countries") +
+  theme(legend.position="none")
+
+```
+
+```{r}
+
+p_static
+
+```
+
+```{r}
+
+ggplotly(p_static,tooltip = "text")
+
+```
+
+```{r}
 
 
 ```
