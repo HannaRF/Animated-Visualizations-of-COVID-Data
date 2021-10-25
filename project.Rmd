@@ -60,7 +60,6 @@ summary(data)
 
 ```
 
-
 ```{r fill}
 
 data <- data %>%
@@ -76,6 +75,16 @@ data <- data %>%
          vac1,
          vac2, .direction = c("down"))
 
+```
+
+```{r}
+
+summary(data)
+
+```
+
+```{r nan}
+
 data <- data %>%
         group_by(location) %>%
         mutate(cases = 100*replace_na(cases,0)/pop,
@@ -87,6 +96,13 @@ data<- data %>% mutate(date_num = as.numeric(date_aux))
 
 
 data <- data %>% select(-pop)
+
+data <- data %>%
+    group_by(location) %>%
+    fill(cases,
+         deaths,
+         vac1,
+         vac2, .direction = c("down"))
 
 ```
 
@@ -102,17 +118,6 @@ glimpse(data)
 
 ```
 
-```{r}
-
-#data[count(data$location)!=12]
-
-```
-
-```{r}
-
-data <- data %>% filter(continent == "Asia")
-
-```
 
 ```{r}
 
@@ -127,20 +132,6 @@ data <- data %>% filter(continent == "Asia")
 ```
 
 ```{r}
-
-
-
-```
-
-```{r}
-
-
-
-```
-
-```{r}
-
-
 
 ```
 
@@ -163,12 +154,22 @@ names <- c('Brazil',
            'Australia')
 
 
-colors <- c('#F28B30', # Asia (laranja)
+colors <- c('gray',
+            '#F28B30', # Asia (laranja)
             '#BF0A3A', # Europa (vermelho)
             '#022873', # Am?rica do norte (azul)
-            '#F23D6D', # Oceania (rosa)
-            'gray',    # Outros (cinza)
-            '#03A62C') # Am?rica do sul (verde)describe(data)
+            '#F23D6D', # Oceania (rosa)    
+            '#03A62C', # Am?rica do sul
+            'yellow')    # Outros (cinza)
+
+```
+
+
+```{r}
+
+data <- mutate(data, Continent=ifelse(location %in% names,
+                                      continent,
+                                      as_factor("Others")))
 
 ```
 
@@ -178,41 +179,81 @@ p <- data %>%
   ggplot(aes(x=cases,
              y=deaths,
              size=vac2)) +
-  geom_point(aes(color=continent,
+  geom_point(aes(color=as_factor(Continent),
                  frame=date_num,
                  ids=location),alpha=0.6) +
   scale_x_continuous(limits = c(-1.5, 20)) +
   scale_y_continuous(limits = c(-0.09, .65)) +
-  scale_size(range = c(.1, 24), name="fully vaccinated") +
+  scale_size(range = c(.1, 25), name="fully vaccinated") +
   scale_colour_manual(values = colors) +
   theme_classic() +
-  guides(size = 'none') +
-  labs(title="COVID-19 vaccinations of top 15 GPD countries")
+  labs(title="COVID-19 vaccinations of top 15 GPD countries") +
+  theme(legend.position="none")
 
-```
-
-```{r}
-
-
-```
-
-```{r}
-
-
-
-```
-
-
-[ref animation plotly][https://plotly-r.com/animating-views.html]
-
-```{r}
-
-ggplotly(p)
 
 ```
 
 ```{r}
 
 p
+
+```
+
+```{r}
+
+ggplotly(p,tooltip = "text") %>% animation_opts(700,
+                               redraw = FALSE,
+                               mode = 'afterall') %>%
+  animation_button(x = 1, xanchor = "right",
+                   y = 0.05, yanchor = "bottom") %>% 
+  animation_slider(hide = TRUE)
+
+```
+
+
+```{r}
+
+fig <- plot_ly(data,
+               x = ~cases,
+               y = ~deaths,
+               color = ~Continent,
+               size = ~vac2,
+               colors = colors,
+        type = 'scatter',
+        mode = 'markers',
+        sizes = c(0.1, 24),
+        marker = list(symbol = 'circle', sizemode = 'diameter',
+                      line = list(width = 2, color = '#FFFFFF')),
+        text = ~paste('Country:', location,
+                      '<br>Continent:', continent,
+                      '<br>Fully Vaccinated:', vac2))
+
+fig
+
+```
+
+```{r}
+
+# fig <- df %>%
+#   plot_ly(
+#     x = ~gdpPercap, 
+#     y = ~lifeExp, 
+#     size = ~pop, 
+#     color = ~continent, 
+#     frame = ~year, 
+#     text = ~country, 
+#     hoverinfo = "text",
+#     type = 'scatter',
+#     mode = 'markers'
+#   )
+# fig <- fig %>% layout(
+#     xaxis = list(
+#       type = "log"
+#     )
+#   )
+# 
+# fig
+  
+
 
 ```
