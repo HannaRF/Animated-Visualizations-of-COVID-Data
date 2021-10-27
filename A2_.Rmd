@@ -1,0 +1,154 @@
+---
+title: "COVID-19 vaccinations of top 15 GPD countries"
+author: "Hanna Rodrigues e Marcos Antônio"
+date: "22 de julho de 2021"
+output:
+  html_document: default
+  pdf_document: default
+---  
+
+Os dados utilizados foram obtidos do site ["Our World in Data"](https://ourworldindata.org/coronavirus), diferentemente dos mapas confecionados pelo Marcos Antônio que explora a dimensão da cor, irei explorar a atual situação das campanhas vacinais dos países através da dimensão de tamanho de um Bubble Chart.
+
+```{r, warning=FALSE, message = FALSE}
+
+library(ggplot2)
+library(dplyr)
+library(Hmisc) # %nin% 
+
+```  
+
+
+```{r}
+
+data <- read.csv("owid-covid-data.csv")
+glimpse(data)
+
+``` 
+
+A limpeza de dados foi basicamente coletar o valor acumulado de casos, mortes e pessoas vacinadas, além de outras medidas auxiliares como tamanho populacional, continente de cada país.
+
+Perceba que nosso dataset possui desta forma 229 linhas, ou seja, 229 países. A fim de selecionar certos países para analisar, filtrei no Bubble Chart os top 15 países de maior PIB de 2021.
+
+```{r, message = FALSE, warning = FALSE}
+
+data <- data %>% 
+  group_by(location) %>%
+  summarise(continent = max(continent),
+    pop = max(population,na.rm = TRUE),
+    cases = max(total_cases,na.rm = TRUE),
+    deaths = max(total_deaths,na.rm = TRUE),
+    vac1 = max(people_vaccinated - people_fully_vaccinated,
+               na.rm = TRUE), 
+    vac2 = max(people_fully_vaccinated,na.rm = TRUE))
+
+data <- data %>% mutate(cases = ifelse(!(cases>=0), 0, cases),
+                        deaths = ifelse(!(deaths>=0), 0, deaths),
+                        vac1 = ifelse(!(vac1>=0 ), 0, vac1), 
+                        vac2 = ifelse(!(vac2>=0), 0, vac2))
+
+glimpse(data)
+
+```  
+
+```{r}
+
+data <- data %>% filter(location %nin% c("World",
+                                         "Asia",
+                                         "Europe",
+                                         "North America",
+                                         "European Union",
+                                         "South America",
+                                         "Africa"))
+
+#Estados Unidos: US$ 20,933 trilhões
+#China: US$ 14,723 trilhões
+#Japão: US$ 5,049 trilhões
+#Alemanha: US$ 3,803 trilhões
+#Reino Unido: US$ 2,711 trilhões
+#Índia: US$ 2,709 trilhões
+#França: US$ 2,599 trilhões
+#Itália: US$ 1,885 trilhão
+#Canadá: US$ 1,643 trilhão
+#Coreia do Sul: US$ 1,631 trilhão
+#Rússia: US$ 1,474 trilhão
+#Brasil: US$ 1,434 trilhão
+#Austrália: US$ 1,359 trilhão
+#Espanha: US$ 1,278 trilhão
+#México: US$ 1,076 trilhão
+
+names <- c('Brazil',
+          'United States',
+          'Canada',
+          'Mexico',
+          'Germany',
+          'United Kingdom',
+          'French',
+          'Italy',
+          'Spain',
+          'Russia',
+          'India',
+          'South Korea',
+          'China',
+          'Japan',
+          'Australia')
+
+
+colors <- c('#F28B30',
+            '#BF0A3A',
+            '#022873',
+            '#F23D6D',
+            'gray',
+            '#03A62C')
+
+data <- mutate(data, aux = ifelse(location %in% names,
+                                  ifelse(location == 'Brazil',
+                                         'z','b'),'a'))
+
+data <- mutate(data, Continent =  ifelse(aux == 'a',
+                                         'Others',
+                                         continent))
+
+```
+
+Foram mantidos as bolhas dos outros países para ter uma noção global do comportamento desses países, mas em cinza para não poluir visualmente. As cores de cada continente foram inspiradas nas bandeiras dos países em questão, por exemplo o laranja da Ásia é o da bandeira da Índia.
+
+
+Analizando agora as variáveis do Bubble Chart, o eixo x é a parcela da população que contrai COVID-19, o eixo y é a parcela da população que morreu por conta dela e o tamanho das bolhas trata-se da porcentagem da população totalmente vacinada de cada país.
+
+
+A escolha de fazer com as porcentagens e não os valores absolutos é para melhor conseguir comparar países com dimensões populacionais tão distintas.
+
+```{r,height=6,width=6,units="in",dpi=200}
+
+
+p <- data %>%
+  arrange(aux) %>% 
+  ggplot(aes(x=cases/pop,
+             y=deaths/pop)) +
+  geom_point(aes(size=vac2/pop,
+                 color=Continent),
+             alpha=0.6) +
+  scale_size(range = c(.1, 35), name="fully vaccinated") +
+  scale_colour_manual(values = colors) +
+  ggrepel::geom_text_repel(data = subset(data,
+                                         location %in% names),
+            aes(x=cases/pop,y=deaths/pop,label=location)) +
+  xlim(-0.012, .18) +
+  ylim(-0.001, .0058) +
+  theme_classic() +
+  theme(legend.position = c(0.83, 0.86)) +
+  guides(size = FALSE) +
+  labs(title="COVID-19 vaccinations of top 15 GPD countries")
+
+
+p
+
+``` 
+
+Uma possível análise a se fazer a partir dessa visualização é o fato de o Brasil, dentro do top ter junto com EUA, Reino Unido, Itália e Espanha ter os maiores percentuais de casos e mortes, entretanto ter uma campanha vacinal tímida se comparada aos mesmos países.
+
+
+Outra coisa interessante a se resaltar é a concentração de países do top 15 que são da Asia perto origem do gráfico, o que mostra que conseguiram lidar bem a pandemia em seus respectivos países. Um possível fator causador desse fenômeno é pelo fato destes países já terem passado por surtos epidêmicos antes, como por exemplo a SARS em 2002.
+
+
+De modo geral podemos analisar uma tendência linear crescente da parcela de casos e mortes em todos os países, com variações mais comuns da porcentagem de mortos para menos. Um outlier muito chamativo nesse contexto é o Peru, em cinza sem label, com a maior porcentagem de mortos.

@@ -211,7 +211,8 @@ data <- data %>%
 p_static <- data %>%
   ggplot(aes(x=cases,
              y=deaths,
-             size=vac2)) +
+             size=vac2,
+             text = paste("country:", location))) +
   geom_point(aes(color=as_factor(Continent),
                  ids=location),alpha=0.6) +
   scale_x_continuous(limits = c(-1.5, 20)) +
