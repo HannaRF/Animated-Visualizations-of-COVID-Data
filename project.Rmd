@@ -11,7 +11,7 @@ output:
 
 ```{r setup, include=FALSE,warning=FALSE}
 
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 library(plotly)
 library(tidyverse)
 library(lubridate)
@@ -50,13 +50,13 @@ data <- data %>% filter(!(location %in% c("World",
                                          "International",
                                          "Northern Cyprus"))) #NA's
 
-glimpse(data)
+#glimpse(data)
 
 ```
 
 ```{r}
 
-summary(data)
+#summary(data)
 
 ```
 
@@ -79,7 +79,7 @@ data <- data %>%
 
 ```{r}
 
-summary(data)
+#summary(data)
 
 ```
 
@@ -108,13 +108,13 @@ data <- data %>%
 
 ```{r}
 
-summary(data)
+#summary(data)
 
 ```
 
 ```{r}
 
-glimpse(data)
+#glimpse(data)
 
 ```
 
@@ -154,7 +154,7 @@ colors <- c('gray',
 
 data <- mutate(data, Continent=ifelse(location %in% names,
                                       continent,
-                                      as_factor("Others")))
+                                      "Others"))
 
 ```
 
@@ -180,7 +180,7 @@ p_animation <- data %>%
 
 ```{r}
 
-p_animation
+#p_animation
 
 ```
 
@@ -227,7 +227,7 @@ p_static <- data %>%
 
 ```{r}
 
-p_static
+#p_static
 
 ```
 
